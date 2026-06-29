@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
 // Connect to your local or deployed Node.js backend server
-const socket = io("http://localhost:3000");
+const socket = io("https://local-cah-backend.onrender.com");
 
 export default function App() {
   const [roomCode, setRoomCode] = useState("");
