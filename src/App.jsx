@@ -2,8 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
-// Connect to your deployed Node.js backend server
-const socket = io("https://local-cah-backend.onrender.com");
+// Connect to your deployed Node.js backend server with explicit cross-origin transport rules
+const socket = io("https://local-cah-backend.onrender.com", {
+  transports: ["websocket", "polling"],
+  withCredentials: false
+});
 
 export default function App() {
   const [roomCode, setRoomCode] = useState("");
