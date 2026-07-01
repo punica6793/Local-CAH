@@ -43,17 +43,24 @@ io.on("connection", (socket) => {
     if (!room) return;
 
     socket.join(roomCode);
-    socket.roomCode = roomCode;
+    socket.socketRoomCode = roomCode;
 
     if (!isHost) {
       socket.playerName = playerName;
-      // Add player structure to the room state tracking data
-      room.players.push({
-        name: playerName,
-        score: 0,
-        isCzar: false,
-        socketId: socket.id
-      });
+      
+      // If player already exists (reconnected), update their socket ID
+      const existingPlayer = room.players.find(p => p.name === playerName);
+      if (existingPlayer) {
+        existingPlayer.socketId = socket.id;
+      } else {
+        // Add new player structure
+        room.players.push({
+          name: playerName,
+          score: 0,
+          isCzar: false,
+          socketId: socket.id
+        });
+      }
     }
 
     io.to(roomCode).emit("gameStateUpdated", room);
@@ -78,47 +85,50 @@ io.on("connection", (socket) => {
     room.players.forEach((player, idx) => {
       player.isCzar = (idx === (room.roundNumber || 0) % room.players.length);
     });
+    room.roundNumber = (room.roundNumber || 0) + 1;
+
+    // Pick a random black card from the uploaded deck
+    const randomBlack = DECK.blackCards[Math.floor(Math.random() * DECK.blackCards.length)];
+    room.currentBlackCard = randomBlack.text || randomBlack;
+
+    // First broadcast the fresh room state so everyone goes to SELECTION_PHASE
+    io.to(roomCode).emit("gameStateUpdated", room);
+
+    // Deal a set of 7 random white cards secretly to each individual phone player
+    room.players.forEach((player) => {
+      if (!player.isCzar) {
+        const hand = [];
+        for (let i = 0; i < 7; i++) {
+          const card = DECK.whiteCards[Math.floor(Math.random() * DECK.whiteCards.length)];
+          // Handle if whiteCards are objects or strings
+          hand.push(card.text || card);
+        }
+        // Send directly to their active socket connection
+        io.to(player.socketId).emit("yourHand", hand);
+      }
+    });
+  }
+
   // Action: Player clicks a white card from their mobile screen interface
   socket.on("submitWhiteCard", ({ roomCode, cardText }) => {
     const room = rooms[roomCode];
     if (!room) return;
 
-    room.submissions.push({ cardText, socketId: socket.id, playerName: socket.playerName });
-    room.submissionCount = room.submissions.length;
-
-    const totalExpectedSubmissions = room.players.length - 1; // total minus Czar
-
-    if (room.submissionCount >= totalExpectedSubmissions) {
-      room.gameState = "JUDGING_PHASE";
-      // Shuffle responses anonymously so Czar doesn't know who played what
-      room.submissions.sort(() => Math.random() - 0.5);
-    }
-
-    // CREATE A PURE COPY FOR THE BROADCAST INSTEAD OF OVERWRITING RUNTIME PARAMETERS
-    const publicSubmissions = room.submissions.map(s => ({ cardText: s.cardText }));
-
-    const anonymizedState = {
-      ...room,
-      submissions: publicSubmissions
-    };
-
-    io.to(roomCode).emit("gameStateUpdated", anonymizedState);
-  });
-    const room = rooms[roomCode];
-    if (!room) return;
+    // Prevent double submissions
+    const alreadySubmitted = room.submissions.some(s => s.socketId === socket.id);
+    if (alreadySubmitted) return;
 
     room.submissions.push({ cardText, socketId: socket.id, playerName: socket.playerName });
     room.submissionCount = room.submissions.length;
 
-    const totalExpectedSubmissions = room.players.length - 1; // total minus Czar
+    const totalExpectedSubmissions = room.players.length - 1;
 
     if (room.submissionCount >= totalExpectedSubmissions) {
       room.gameState = "JUDGING_PHASE";
-      // Shuffle responses anonymously so Czar doesn't know who played what
       room.submissions.sort(() => Math.random() - 0.5);
     }
 
-    // Strip player names out of the public object so it stays anonymous on TV layout
+    // Keep it as a plain string array so your frontend buttons work perfectly!
     const anonymizedState = {
       ...room,
       submissions: room.submissions.map(s => s.cardText)
@@ -132,12 +142,11 @@ io.on("connection", (socket) => {
     const room = rooms[roomCode];
     if (!room) return;
 
-    // Find the player object linked to that specific anonymous card string match
     const winningSubmission = room.submissions.find(s => s.cardText === winnerCardText);
     if (winningSubmission) {
       const winnerPlayer = room.players.find(p => p.socketId === winningSubmission.socketId);
       if (winnerPlayer) {
-        winnerPlayer.score += 1; // increment award point counter
+        winnerPlayer.score += 1;
       }
 
       room.gameState = "ROUND_END";
@@ -156,12 +165,13 @@ io.on("connection", (socket) => {
     if (rooms[roomCode]) startNewRound(roomCode);
   });
 
-  // Clean exit handling if a phone disconnects or closing tabs occurs
+  // Clean exit handling if a phone disconnects
   socket.on("disconnect", () => {
-    const room = rooms[socket.roomCode];
+    const roomCode = socket.socketRoomCode;
+    const room = rooms[roomCode];
     if (room) {
       room.players = room.players.filter(p => p.socketId !== socket.id);
-      io.to(socket.roomCode).emit("gameStateUpdated", room);
+      io.to(roomCode).emit("gameStateUpdated", room);
     }
   });
 });
