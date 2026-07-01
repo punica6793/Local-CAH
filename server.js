@@ -78,29 +78,32 @@ io.on("connection", (socket) => {
     room.players.forEach((player, idx) => {
       player.isCzar = (idx === (room.roundNumber || 0) % room.players.length);
     });
-    room.roundNumber = (room.roundNumber || 0) + 1;
-
-    // Pick a random black card from the uploaded deck
-    const randomBlack = DECK.blackCards[Math.floor(Math.random() * DECK.blackCards.length)];
-    room.currentBlackCard = randomBlack.text || randomBlack; // handles object or plain text string formats
-
-    io.to(roomCode).emit("gameStateUpdated", room);
-
-    // Deal a set of 7 random white cards secretly to each individual phone player
-    room.players.forEach((player) => {
-      if (!player.isCzar) {
-        const hand = [];
-        for (let i = 0; i < 7; i++) {
-          const card = DECK.whiteCards[Math.floor(Math.random() * DECK.whiteCards.length)];
-          hand.push(card);
-        }
-        io.to(player.socketId).emit("yourHand", hand);
-      }
-    });
-  }
-
   // Action: Player clicks a white card from their mobile screen interface
   socket.on("submitWhiteCard", ({ roomCode, cardText }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    room.submissions.push({ cardText, socketId: socket.id, playerName: socket.playerName });
+    room.submissionCount = room.submissions.length;
+
+    const totalExpectedSubmissions = room.players.length - 1; // total minus Czar
+
+    if (room.submissionCount >= totalExpectedSubmissions) {
+      room.gameState = "JUDGING_PHASE";
+      // Shuffle responses anonymously so Czar doesn't know who played what
+      room.submissions.sort(() => Math.random() - 0.5);
+    }
+
+    // CREATE A PURE COPY FOR THE BROADCAST INSTEAD OF OVERWRITING RUNTIME PARAMETERS
+    const publicSubmissions = room.submissions.map(s => ({ cardText: s.cardText }));
+
+    const anonymizedState = {
+      ...room,
+      submissions: publicSubmissions
+    };
+
+    io.to(roomCode).emit("gameStateUpdated", anonymizedState);
+  });
     const room = rooms[roomCode];
     if (!room) return;
 
