@@ -1,30 +1,32 @@
 import { Server } from "socket.io";
 import fs from "fs";
 
-// Build the socket gateway server configuration
-const io = new Server(process.env.PORT || 3000, {
+// Render requires process.env.PORT dynamically. Do not hardcode 3000 inside the server instance.
+const PORT = process.env.PORT || 3000;
+const io = new Server(PORT, {
   cors: {
-    origin: "*", // Allows phones on Wi-Fi/networks to connect freely
-  }
+    origin: "*", 
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ["polling", "websocket"] // Forces polling first so firewall blocks are bypassed
 });
 
-// Load the card deck JSON file safely using modern file tools
+// Load the card deck JSON file safely
 const rawDeck = fs.readFileSync("./deck.json", "utf-8");
 const DECK = JSON.parse(rawDeck);
 
-// Track active game rooms in memory
 const rooms = {};
 
-console.log("🎲 The Invisible Referee is awake and waiting!");
+console.log(`🎲 Backend server listening properly on port ${PORT}`);
 
 io.on("connection", (socket) => {
   
-  // Action: Create a new room (Living Room TV View)
   socket.on("createRoom", () => {
     let code;
     do {
       code = Math.random().toString(36).substring(2, 6).toUpperCase();
-    } while (rooms[code]); // Ensure room code uniqueness
+    } while (rooms[code]);
 
     rooms[code] = {
       gameState: "LOBBY",
@@ -38,7 +40,6 @@ io.on("connection", (socket) => {
     socket.emit("roomCreated", code);
   });
 
-  // Action: Join a room (Either as TV host or Mobile player)
   socket.on("joinRoom", ({ roomCode, playerName, isHost }) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -46,9 +47,9 @@ io.on("connection", (socket) => {
     socket.join(roomCode);
     socket.roomCode = roomCode;
 
-    if (!isHost) {
+    if (!isHost && playerName) {
       socket.playerName = playerName;
-      // Safeguard against double joining state mutations
+      
       const existingPlayer = room.players.find(p => p.name === playerName);
       if (!existingPlayer) {
         room.players.push({
@@ -58,42 +59,37 @@ io.on("connection", (socket) => {
           socketId: socket.id
         });
       } else {
-        existingPlayer.socketId = socket.id; // Update socket layout mapping on reconnection
+        existingPlayer.socketId = socket.id;
       }
     }
 
     io.to(roomCode).emit("gameStateUpdated", room);
   });
 
-  // Action: Start the game (Flipped by the host)
   socket.on("startGame", (roomCode) => {
     const room = rooms[roomCode];
     if (!room || room.players.length === 0) return;
-
     startNewRound(roomCode);
   });
 
-  // Logic: Reset state and set up a new round
   function startNewRound(roomCode) {
     const room = rooms[roomCode];
+    if (!room) return;
+
     room.gameState = "SELECTION_PHASE";
     room.submissions = [];
     room.submissionCount = 0;
 
-    // Elect a rotating Card Czar
     room.players.forEach((player, idx) => {
       player.isCzar = (idx === (room.roundNumber || 0) % room.players.length);
     });
     room.roundNumber = (room.roundNumber || 0) + 1;
 
-    // Pick a random black card from the uploaded deck
     const randomBlack = DECK.blackCards[Math.floor(Math.random() * DECK.blackCards.length)];
     room.currentBlackCard = randomBlack.text || randomBlack;
 
-    // First broadcast structural baseline to room components
     io.to(roomCode).emit("gameStateUpdated", room);
 
-    // Deal a set of 7 random white cards secretly to each individual phone player
     room.players.forEach((player) => {
       if (!player.isCzar) {
         const hand = [];
@@ -106,39 +102,37 @@ io.on("connection", (socket) => {
     });
   }
 
-  // Action: Player clicks a white card from their mobile screen interface
   socket.on("submitWhiteCard", ({ roomCode, cardText }) => {
     const room = rooms[roomCode];
-    if (!room || !roomCode) return;
+    if (!room) return;
 
-    // Resolve structural playerName references safely
-    const nameToRegister = socket.playerName || "Anonymous";
+    const currentSubmittingPlayer = room.players.find(p => p.socketId === socket.id);
+    const resolvedName = socket.playerName || currentSubmittingPlayer?.name || "Player";
 
-    // Prevent duplicate entries from a single client socket context
-    if (room.submissions.some(s => s.socketId === socket.id)) return;
+    // Track submission if this socket hasn't submitted yet
+    const alreadySubmitted = room.submissions.some(s => s.socketId === socket.id);
+    if (!alreadySubmitted) {
+      room.submissions.push({ cardText, socketId: socket.id, playerName: resolvedName });
+      room.submissionCount = room.submissions.length;
+    }
 
-    room.submissions.push({ cardText, socketId: socket.id, playerName: nameToRegister });
-    room.submissionCount = room.submissions.length;
-
-    const totalExpectedSubmissions = room.players.length - 1; // total minus Czar
+    const totalExpectedSubmissions = room.players.length - 1;
 
     if (room.submissionCount >= totalExpectedSubmissions) {
       room.gameState = "JUDGING_PHASE";
-      // Shuffle responses anonymously so Czar doesn't know who played what
       room.submissions.sort(() => Math.random() - 0.5);
     }
 
-    // Safeguard the global runtime reference by copying the state anonymously
-    const publicSubmissions = room.submissions.map(s => ({ cardText: s.cardText }));
+    // Explicitly send a clean state object to avoid nested tracking bugs
+    const publicSubmissions = room.submissions.map(s => s.cardText);
     const anonymizedState = {
       ...room,
-      submissions: publicSubmissions
+      submissions: room.gameState === "JUDGING_PHASE" ? publicSubmissions : []
     };
 
     io.to(roomCode).emit("gameStateUpdated", anonymizedState);
   });
 
-  // Action: Czar clicks the winning card string on their phone layout
   socket.on("selectWinner", ({ roomCode, winnerCardText }) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -147,7 +141,7 @@ io.on("connection", (socket) => {
     if (winningSubmission) {
       const winnerPlayer = room.players.find(p => p.socketId === winningSubmission.socketId);
       if (winnerPlayer) {
-        winnerPlayer.score += 1; // Increment point counter
+        winnerPlayer.score += 1;
       }
 
       room.gameState = "ROUND_END";
@@ -161,12 +155,10 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Action: Next round request clicked by Host TV
   socket.on("nextRound", (roomCode) => {
     if (rooms[roomCode]) startNewRound(roomCode);
   });
 
-  // Clean exit handling if a phone disconnects or closing tabs occurs
   socket.on("disconnect", () => {
     const room = rooms[socket.roomCode];
     if (room) {
