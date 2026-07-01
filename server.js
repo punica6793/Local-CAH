@@ -101,20 +101,21 @@ io.on("connection", (socket) => {
       }
     });
   }
-
+// Action: Player clicks a white card
   socket.on("submitWhiteCard", ({ roomCode, cardText }) => {
     const room = rooms[roomCode];
     if (!room) return;
 
-    const currentSubmittingPlayer = room.players.find(p => p.socketId === socket.id);
-    const resolvedName = socket.playerName || currentSubmittingPlayer?.name || "Player";
+    // Resolve name directly from socket context or match by socket ID as a backup
+    const resolvedName = socket.playerName || room.players.find(p => p.socketId === socket.id)?.name;
+    if (!resolvedName) return; // If the server can't identify who this is, drop out safely
 
-    // Track submission if this socket hasn't submitted yet
-    const alreadySubmitted = room.submissions.some(s => s.socketId === socket.id);
-    if (!alreadySubmitted) {
-      room.submissions.push({ cardText, socketId: socket.id, playerName: resolvedName });
-      room.submissionCount = room.submissions.length;
-    }
+    // CRITICAL SECURITY FIX: Check duplicates by PLAYER NAME, not shifting socket IDs
+    const alreadySubmitted = room.submissions.some(s => s.playerName === resolvedName);
+    if (alreadySubmitted) return;
+
+    room.submissions.push({ cardText, socketId: socket.id, playerName: resolvedName });
+    room.submissionCount = room.submissions.length;
 
     const totalExpectedSubmissions = room.players.length - 1;
 
@@ -123,16 +124,14 @@ io.on("connection", (socket) => {
       room.submissions.sort(() => Math.random() - 0.5);
     }
 
-    // Explicitly send a clean state object to avoid nested tracking bugs
-    const publicSubmissions = room.submissions.map(s => s.cardText);
+    // Force clear structural cloning to prevent frontend processing blocks
     const anonymizedState = {
       ...room,
-      submissions: room.gameState === "JUDGING_PHASE" ? publicSubmissions : []
+      submissions: room.gameState === "JUDGING_PHASE" ? room.submissions.map(s => s.cardText) : []
     };
 
     io.to(roomCode).emit("gameStateUpdated", anonymizedState);
   });
-
   socket.on("selectWinner", ({ roomCode, winnerCardText }) => {
     const room = rooms[roomCode];
     if (!room) return;
