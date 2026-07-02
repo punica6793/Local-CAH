@@ -6,7 +6,7 @@ const socket = io("https://local-cah-backend.onrender.com", {
   autoConnect: true
 });
 
-// Strict Iconic Typography & Styling Rules
+// Strict Tabletop Box Art Aesthetics
 const basePageStyle = {
   backgroundColor: "#000000",
   color: "#FFFFFF",
@@ -140,12 +140,12 @@ export default function App() {
             
             <div>
               <label style={{ fontSize: "10px", fontWeight: "900", letterSpacing: "0.1em", display: "block", marginBottom: "8px" }}>ROOM CODE</label>
-              <input type="text" maxLength={4} value={roomCode} onChange={(e) => setRoomCode(e.target.value)} style={brutallInputStyle} />
+              <input type="text" maxLength={4} value={roomCode} onChange={(e) => setRoomCode(e.target.value)} style={brutalInputStyle} />
             </div>
 
             <div>
               <label style={{ fontSize: "10px", fontWeight: "900", letterSpacing: "0.1em", display: "block", marginBottom: "8px" }}>YOUR NAME</label>
-              <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} style={brutallInputStyle} />
+              <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} style={brutalInputStyle} />
             </div>
 
             <button type="submit" style={whiteButtonStyle}>PLAY NOW</button>
