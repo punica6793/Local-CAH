@@ -101,74 +101,129 @@ export default function App() {
   }
 
   const amICzar = gameState.players.find(p => p.name === playerName)?.isCzar;
-
-  if (role === "host") {
+if (role === "host") {
     return (
-      <div className="min-h-screen bg-black text-white p-12 flex flex-col justify-between">
-        <div className="flex justify-between items-center border-b border-neutral-800 pb-6">
+      <div className="min-h-screen bg-black text-white p-12 flex flex-col justify-between font-['Helvetica_Neue',Helvetica,Arial,sans-serif] antialiased selection:bg-white selection:text-black tracking-tight">
+        
+        {/* TOP BAR: Ultra-Minimal Header */}
+        <div className="flex justify-between items-end border-b-2 border-white pb-6">
           <div>
-            <p className="text-neutral-500 uppercase font-bold tracking-wider text-sm">Room Code</p>
-            <h1 className="text-5xl font-mono font-black text-amber-400">{roomCode}</h1>
+            <p className="text-white uppercase text-xs font-black tracking-widest mb-1">ROOM CODE</p>
+            <h1 className="text-6xl font-black tracking-tighter leading-none">{roomCode}</h1>
           </div>
-          {gameState.gameState === "LOBBY" && (
-            <button onClick={() => socket.emit("startGame", roomCode)} className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xl rounded-xl transition">
-              START MATCH 🚀
-            </button>
-          )}
-          {gameState.gameState === "ROUND_END" && (
-            <button onClick={() => socket.emit("nextRound", roomCode)} className="px-8 py-4 bg-blue-500 hover:bg-blue-400 text-white font-black text-xl rounded-xl transition">
-              NEXT ROUND ➡️
-            </button>
-          )}
+          
+          <div className="text-right">
+            {gameState.gameState === "LOBBY" && (
+              <button 
+                onClick={() => socket.emit("startGame", roomCode)} 
+                className="px-6 py-3 bg-white text-black font-black text-sm uppercase tracking-wider border-2 border-white hover:bg-black hover:text-white active:translate-y-0.5 transition-all duration-150 ease-in-out"
+              >
+                START MATCH
+              </button>
+            )}
+            {gameState.gameState === "ROUND_END" && (
+              <button 
+                onClick={() => socket.emit("nextRound", roomCode)} 
+                className="px-6 py-3 bg-white text-black font-black text-sm uppercase tracking-wider border-2 border-white hover:bg-black hover:text-white active:translate-y-0.5 transition-all duration-150 ease-in-out"
+              >
+                NEXT ROUND
+              </button>
+            )}
+            {gameState.gameState === "SELECTION_PHASE" && <p className="font-black text-sm uppercase tracking-wider text-white">PLAYERS CHOOSING</p>}
+            {gameState.gameState === "JUDGING_PHASE" && <p className="font-black text-sm uppercase tracking-wider text-white">CZAR JUDGING</p>}
+          </div>
         </div>
 
-        <div className="my-auto grid grid-cols-3 gap-8 items-center py-8">
-          <div className="col-span-1 bg-neutral-900 border-2 border-neutral-800 p-8 h-96 rounded-2xl flex flex-col justify-between shadow-2xl">
-            <h2 className="text-2xl font-bold leading-relaxed">
-              {gameState.currentBlackCard || "Waiting for host to kick off the deck..."}
-            </h2>
-            <div className="text-xs tracking-wider text-neutral-500 font-mono font-bold">LOCAL AGAINST HUMANITY</div>
+        {/* MAIN DISPLAY GRID */}
+        <div className="my-auto grid grid-cols-1 lg:grid-cols-3 gap-12 items-start py-8">
+          
+          {/* THE BLACK CARD (Pure Black, White Text, Sharp Corners) */}
+          <div className="lg:col-span-1 flex justify-center lg:justify-start">
+            <div className="bg-black border-4 border-white p-6 w-64 h-80 flex flex-col justify-between shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)]">
+              <h2 className="text-2xl font-bold leading-tight text-white text-left text-balance">
+                {gameState.currentBlackCard || "WAITING FOR DECK..."}
+              </h2>
+              <div className="text-[10px] tracking-widest text-white font-black uppercase">
+                LOCAL AGAINST HUMANITY
+              </div>
+            </div>
           </div>
 
-          <div className="col-span-2 flex flex-wrap gap-4 items-center justify-center">
+          {/* GAME STATE SUBMISSIONS AREA */}
+          <div className="lg:col-span-2 flex flex-col justify-center min-h-[20rem]">
+            
+            {/* LOBBY STATE */}
             {gameState.gameState === "LOBBY" && (
-              <div className="text-center text-neutral-400 text-2xl animate-pulse">Waiting for friends to join using code {roomCode}...</div>
+              <div className="text-left p-8 border-4 border-white max-w-xl">
+                <p className="text-white text-2xl font-black uppercase tracking-tight">WAITING FOR PLAYERS</p>
+                <p className="text-white text-sm mt-2 font-mono">ENTER THE 4-LETTER CODE ABOVE ON YOUR DEVICE TO JOIN.</p>
+              </div>
             )}
             
+            {/* SELECTION PHASE COUNTER */}
             {gameState.gameState === "SELECTION_PHASE" && (
-              <div className="text-center text-neutral-400 text-3xl">
-                Cards Submitted: <span className="text-white font-black">{gameState.submissionCount}</span> / {gameState.players.length - 1}
+              <div className="text-left border-4 border-white p-8 max-w-sm">
+                <div className="text-xs font-black text-white uppercase tracking-widest mb-1">CARDS SUBMITTED</div>
+                <div className="text-7xl font-black text-white leading-none">
+                  {gameState.submissionCount}<span className="text-neutral-700">/</span>{Math.max(1, gameState.players.length - 1)}
+                </div>
               </div>
             )}
 
-            {gameState.gameState === "JUDGING_PHASE" && gameState.submissions.map((card, i) => (
-              <div key={i} className="bg-white text-black p-6 w-56 h-72 rounded-xl flex flex-col justify-between shadow-lg font-bold text-lg">
-                <p>{card}</p>
-                <span className="text-xs tracking-wider text-neutral-400 font-mono">CHOICE {i + 1}</span>
+            {/* REVEALED WHITE CARDS (Pure White, Black Text, Snappy Physical Lift) */}
+            {gameState.gameState === "JUDGING_PHASE" && (
+              <div className="flex flex-wrap gap-6 items-center justify-center lg:justify-start">
+                {gameState.submissions.map((card, i) => (
+                  <div 
+                    key={i} 
+                    className="bg-white text-black p-5 w-52 h-72 flex flex-col justify-between border-4 border-white shadow-[4px_4px_0px_0px_rgba(255,255,255,0.15)] hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(255,255,255,0.3)] transition-all duration-150 ease-in-out cursor-pointer"
+                  >
+                    <p className="font-bold text-base leading-snug text-black text-left">{card}</p>
+                    <div className="text-[10px] tracking-widest text-neutral-500 font-black uppercase font-mono text-left">
+                      CHOICE {i + 1}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
 
+            {/* BRUTALIST WINNER SCREEN */}
             {winnerAnnouncement && (
-              <div className="bg-amber-400 text-black p-8 rounded-2xl text-center border shadow-2xl max-w-xl">
-                <h3 className="text-xl font-bold uppercase tracking-wider text-amber-900">Round Winner!</h3>
-                <p className="text-4xl font-black my-4">🎉 {winnerAnnouncement.winnerName}</p>
-                <p className="italic text-lg border-t border-amber-500 pt-3 mt-3 font-semibold">"{winnerAnnouncement.cardText}"</p>
+              <div className="w-full max-w-xl bg-white text-black p-8 border-4 border-white shadow-[12px_12px_0px_0px_rgba(255,255,255,0.2)]">
+                <div className="text-xs font-black text-black uppercase tracking-widest mb-1">🏆 ROUND WINNER</div>
+                <p className="text-4xl font-black tracking-tighter uppercase leading-none">{winnerAnnouncement.winnerName}</p>
+                <div className="mt-6 pt-4 border-t-2 border-black">
+                  <p className="text-lg text-black font-bold italic">"{winnerAnnouncement.cardText}"</p>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-xl flex gap-6 overflow-x-auto">
+        {/* BOTTOM BAR: Flat Scoreboard Matrix */}
+        <div className="border-t-2 border-white pt-6 flex flex-wrap gap-4 overflow-x-auto">
           {gameState.players.map((p, i) => (
-            <div key={i} className={`px-6 py-3 rounded-lg border flex items-center gap-3 shrink-0 ${p.isCzar ? "border-amber-400 bg-amber-950/20" : "border-neutral-800 bg-neutral-950"}`}>
-              <span className="text-xl">{p.isCzar ? "👑" : "👤"}</span>
-              <div>
-                <div className="font-bold">{p.name}</div>
-                <div className="text-xs text-neutral-400">{p.score} Awesome Points</div>
+            <div 
+              key={i} 
+              className={`px-5 py-3 flex items-center gap-4 transition-all ${
+                p.isCzar 
+                  ? "bg-white text-black border-2 border-white font-black" 
+                  : "bg-black text-white border-2 border-white"
+              }`}
+            >
+              <div className="text-left">
+                <div className="font-black text-sm uppercase tracking-wide flex items-center gap-2">
+                  {p.name}
+                  {p.isCzar && <span className="text-[9px] bg-black text-white px-1 py-0.5 font-black tracking-widest">CZAR</span>}
+                </div>
+                <div className={`text-xs font-mono mt-0.5 ${p.isCzar ? "text-neutral-700" : "text-neutral-400"}`}>
+                  {p.score} POINTS
+                </div>
               </div>
             </div>
           ))}
         </div>
+
       </div>
     );
   }
