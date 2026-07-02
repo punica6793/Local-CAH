@@ -6,11 +6,12 @@ const socket = io("https://local-cah-backend.onrender.com", {
   autoConnect: true
 });
 
-// Strict Tabletop Box Art Aesthetics
+// Full-screen, edge-to-edge brutalist black styling rules
 const basePageStyle = {
   backgroundColor: "#000000",
   color: "#FFFFFF",
   minHeight: "100vh",
+  width: "100vw",
   fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
   padding: "40px",
   display: "flex",
@@ -18,7 +19,11 @@ const basePageStyle = {
   justifyContent: "center",
   alignItems: "center",
   boxSizing: "border-box",
-  letterSpacing: "-0.03em"
+  letterSpacing: "-0.03em",
+  position: "absolute",
+  top: 0,
+  left: 0,
+  overflowX: "hidden"
 };
 
 const blackCardStyle = {
@@ -131,7 +136,7 @@ export default function App() {
     return (
       <div style={basePageStyle}>
         <h1 style={{ fontSize: "42px", fontWeight: "900", textTransform: "uppercase", letterSpacing: "-0.05em", marginBottom: "40px", textAlign: "center" }}>
-          LOCAL AGAINST HUMANITY
+          LOCAL CARDS AGAINST HUMANITY
         </h1>
         
         <div style={{ width: "100%", maxWidth: "360px", border: "4px solid #FFFFFF", padding: "32px", backgroundColor: "#000000", boxSizing: "border-box" }}>
@@ -183,7 +188,7 @@ export default function App() {
         <div style={{ display: "flex", gap: "48px", width: "100%", margin: "auto 0", padding: "40px 0", alignItems: "flex-start" }}>
           <div style={blackCardStyle}>
             <h2 style={{ fontSize: "24px", fontWeight: "700", margin: 0, lineHeight: 1.2 }}>{gameState.currentBlackCard || "WAITING FOR DECK..."}</h2>
-            <div style={{ fontSize: "10px", fontWeight: "900", letterSpacing: "0.1em" }}>LOCAL AGAINST HUMANITY</div>
+            <div style={{ fontSize: "10px", fontWeight: "900", letterSpacing: "0.1em" }}>LOCAL CARDS AGAINST HUMANITY</div>
           </div>
 
           <div style={{ flexGrow: 1 }}>
