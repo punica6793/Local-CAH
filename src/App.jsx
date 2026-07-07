@@ -61,17 +61,19 @@ export default function App() {
   const fgMain = "#FFFFFF";
   const cardBorderColor = "#FFFFFF";
 
-  // Clean, subtle box-art letter scatter
+  // Clean, subtle randomized letter scatter across the full page height
   const BackgroundDesign = () => {
-    const letterColor = "rgba(255, 255, 255, 0.07)"; // Lower opacity for an elegant look
+    const letterColor = "rgba(255, 255, 255, 0.06)";
     return (
       <div style={{ position: "absolute", width: "100%", height: "100%", top: 0, left: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", fontSize: "140px", fontWeight: "900", color: letterColor, top: "-10px", left: "5%", transform: "rotate(-12deg)" }}>F</div>
-        <div style={{ position: "absolute", fontSize: "110px", fontWeight: "900", color: letterColor, top: "15px", left: "20%", transform: "rotate(15deg)" }}>a</div>
-        <div style={{ position: "absolute", fontSize: "160px", fontWeight: "900", color: letterColor, top: "-30px", left: "35%", transform: "rotate(-8deg)" }}>m</div>
-        <div style={{ position: "absolute", fontSize: "130px", fontWeight: "900", color: letterColor, top: "20px", left: "55%", transform: "rotate(18deg)" }}>i</div>
-        <div style={{ position: "absolute", fontSize: "150px", fontWeight: "900", color: letterColor, top: "-15px", left: "70%", transform: "rotate(-15deg)" }}>l</div>
-        <div style={{ position: "absolute", fontSize: "170px", fontWeight: "900", color: letterColor, top: "10px", left: "85%", transform: "rotate(22deg)" }}>y</div>
+        <div style={{ position: "absolute", fontSize: "140px", fontWeight: "900", color: letterColor, top: "5%", left: "8%", transform: "rotate(-12deg)" }}>H</div>
+        <div style={{ position: "absolute", fontSize: "110px", fontWeight: "900", color: letterColor, top: "15%", right: "12%", transform: "rotate(15deg)" }}>X</div>
+        <div style={{ position: "absolute", fontSize: "160px", fontWeight: "900", color: letterColor, top: "38%", left: "15%", transform: "rotate(-25deg)" }}>A</div>
+        <div style={{ position: "absolute", fontSize: "130px", fontWeight: "900", color: letterColor, top: "42%", right: "10%", transform: "rotate(18deg)" }}>B</div>
+        <div style={{ position: "absolute", fontSize: "150px", fontWeight: "900", color: letterColor, bottom: "25%", left: "5%", transform: "rotate(-15deg)" }}>C</div>
+        <div style={{ position: "absolute", fontSize: "170px", fontWeight: "900", color: letterColor, bottom: "20%", right: "22%", transform: "rotate(32deg)" }}>Z</div>
+        <div style={{ position: "absolute", fontSize: "125px", fontWeight: "900", color: letterColor, bottom: "5%", left: "25%", transform: "rotate(8deg)" }}>P</div>
+        <div style={{ position: "absolute", fontSize: "145px", fontWeight: "900", color: letterColor, bottom: "4%", right: "7%", transform: "rotate(-18deg)" }}>Q</div>
       </div>
     );
   };
@@ -120,7 +122,7 @@ export default function App() {
     return (
       <div style={{ ...basePageStyle, alignItems: "stretch", justifyContent: "space-between", padding: "48px" }}>
         {/* Header with Design */}
-        <div style={{ position: "relative", borderBottom: `4px solid ${fgMain}`, paddingBottom: "24px", width: "100%", overflow: "hidden" }}>
+        <div style={{ position: "relative", borderBottom: `4px solid ${fgMain}`, paddingBottom: "24px", width: "100%" }}>
            <BackgroundDesign />
            <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
             <div>
@@ -147,7 +149,7 @@ export default function App() {
         </div>
 
         {/* Footer with Design */}
-        <div style={{ position: "relative", borderTop: `4px solid ${fgMain}`, paddingTop: "24px", width: "100%", overflow: "hidden" }}>
+        <div style={{ position: "relative", borderTop: `4px solid ${fgMain}`, paddingTop: "24px", width: "100%" }}>
            <BackgroundDesign />
            <div style={{ position: "relative", zIndex: 1, display: "flex", gap: "16px" }}>
             {gameState.players.map((p, i) => (
