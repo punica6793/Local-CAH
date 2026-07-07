@@ -61,19 +61,19 @@ export default function App() {
   const fgMain = "#FFFFFF";
   const cardBorderColor = "#FFFFFF";
 
-  // Clean, subtle randomized letter scatter across the full page height
+  // Clean, global randomized letter scatter
   const BackgroundDesign = () => {
-    const letterColor = "rgba(255, 255, 255, 0.06)";
+    const letterColor = "rgba(255, 255, 255, 0.05)";
     return (
       <div style={{ position: "absolute", width: "100%", height: "100%", top: 0, left: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", fontSize: "140px", fontWeight: "900", color: letterColor, top: "5%", left: "8%", transform: "rotate(-12deg)" }}>H</div>
-        <div style={{ position: "absolute", fontSize: "110px", fontWeight: "900", color: letterColor, top: "15%", right: "12%", transform: "rotate(15deg)" }}>X</div>
-        <div style={{ position: "absolute", fontSize: "160px", fontWeight: "900", color: letterColor, top: "38%", left: "15%", transform: "rotate(-25deg)" }}>A</div>
-        <div style={{ position: "absolute", fontSize: "130px", fontWeight: "900", color: letterColor, top: "42%", right: "10%", transform: "rotate(18deg)" }}>B</div>
-        <div style={{ position: "absolute", fontSize: "150px", fontWeight: "900", color: letterColor, bottom: "25%", left: "5%", transform: "rotate(-15deg)" }}>C</div>
-        <div style={{ position: "absolute", fontSize: "170px", fontWeight: "900", color: letterColor, bottom: "20%", right: "22%", transform: "rotate(32deg)" }}>Z</div>
-        <div style={{ position: "absolute", fontSize: "125px", fontWeight: "900", color: letterColor, bottom: "5%", left: "25%", transform: "rotate(8deg)" }}>P</div>
-        <div style={{ position: "absolute", fontSize: "145px", fontWeight: "900", color: letterColor, bottom: "4%", right: "7%", transform: "rotate(-18deg)" }}>Q</div>
+        <div style={{ position: "absolute", fontSize: "140px", fontWeight: "900", color: letterColor, top: "8%", left: "5%", transform: "rotate(-12deg)" }}>H</div>
+        <div style={{ position: "absolute", fontSize: "110px", fontWeight: "900", color: letterColor, top: "12%", right: "8%", transform: "rotate(15deg)" }}>X</div>
+        <div style={{ position: "absolute", fontSize: "160px", fontWeight: "900", color: letterColor, top: "35%", left: "12%", transform: "rotate(-25deg)" }}>A</div>
+        <div style={{ position: "absolute", fontSize: "130px", fontWeight: "900", color: letterColor, top: "40%", right: "14%", transform: "rotate(18deg)" }}>B</div>
+        <div style={{ position: "absolute", fontSize: "150px", fontWeight: "900", color: letterColor, bottom: "30%", left: "7%", transform: "rotate(-15deg)" }}>C</div>
+        <div style={{ position: "absolute", fontSize: "170px", fontWeight: "900", color: letterColor, bottom: "28%", right: "6%", transform: "rotate(32deg)" }}>Z</div>
+        <div style={{ position: "absolute", fontSize: "125px", fontWeight: "900", color: letterColor, bottom: "8%", left: "22%", transform: "rotate(8deg)" }}>P</div>
+        <div style={{ position: "absolute", fontSize: "145px", fontWeight: "900", color: letterColor, bottom: "6%", right: "25%", transform: "rotate(-18deg)" }}>Q</div>
       </div>
     );
   };
@@ -89,8 +89,8 @@ export default function App() {
   };
 
   const basePageStyle = { backgroundColor: bgMain, color: fgMain, minHeight: "100vh", width: "100vw", fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', padding: "40px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", boxSizing: "border-box", position: "absolute", top: 0, left: 0, overflowX: "hidden" };
-  const blackCardStyle = { backgroundColor: "#000000", color: "#FFFFFF", border: `4px solid ${cardBorderColor}`, borderRadius: "16px", padding: "24px", width: "250px", height: "320px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", boxShadow: "8px 8px 0px 0px rgba(255, 255, 255, 0.15)", position: "relative" };
-  const whiteCardStyle = { backgroundColor: "#FFFFFF", color: "#000000", border: `4px solid ${cardBorderColor}`, borderRadius: "16px", padding: "20px", width: "220px", height: "280px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", boxShadow: "6px 6px 0px 0px rgba(255, 255, 255, 0.1)", textAlign: "left", position: "relative" };
+  const blackCardStyle = { backgroundColor: "#000000", color: "#FFFFFF", border: `4px solid ${cardBorderColor}`, borderRadius: "16px", padding: "24px", width: "250px", height: "320px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", boxShadow: "8px 8px 0px 0px rgba(255, 255, 255, 0.15)", position: "relative", zIndex: 2 };
+  const whiteCardStyle = { backgroundColor: "#FFFFFF", color: "#000000", border: `4px solid ${cardBorderColor}`, borderRadius: "16px", padding: "20px", width: "220px", height: "280px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", boxShadow: "6px 6px 0px 0px rgba(255, 255, 255, 0.1)", textAlign: "left", position: "relative", zIndex: 2 };
   const brutalInputStyle = { width: "100%", padding: "16px", backgroundColor: bgMain, border: `4px solid ${fgMain}`, color: fgMain, fontSize: "20px", fontWeight: "900", outline: "none", boxSizing: "border-box" };
   const whiteButtonStyle = { width: "100%", padding: "16px", backgroundColor: fgMain, color: bgMain, border: `4px solid ${fgMain}`, fontWeight: "900", fontSize: "14px", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", boxSizing: "border-box" };
 
@@ -121,10 +121,12 @@ export default function App() {
   if (role === "host") {
     return (
       <div style={{ ...basePageStyle, alignItems: "stretch", justifyContent: "space-between", padding: "48px" }}>
-        {/* Header with Design */}
-        <div style={{ position: "relative", borderBottom: `4px solid ${fgMain}`, paddingBottom: "24px", width: "100%" }}>
-           <BackgroundDesign />
-           <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        {/* Render Background once at the root level so it covers everything seamlessly */}
+        <BackgroundDesign />
+
+        {/* Header */}
+        <div style={{ position: "relative", zIndex: 1, borderBottom: `4px solid ${fgMain}`, paddingBottom: "24px", width: "100%" }}>
+           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
             <div>
               <p style={{ fontSize: "12px", fontWeight: "900", margin: "0 0 4px 0" }}>ROOM CODE</p>
               <h1 style={{ fontSize: "72px", fontWeight: "900", margin: 0 }}>{roomCode}</h1>
@@ -134,24 +136,23 @@ export default function App() {
           </div>
         </div>
 
-        {/* Game Area (Clean) */}
-        <div style={{ display: "flex", gap: "48px", width: "100%", margin: "40px 0", alignItems: "flex-start" }}>
+        {/* Game Area */}
+        <div style={{ position: "relative", zIndex: 1, display: "flex", gap: "48px", width: "100%", margin: "40px 0", alignItems: "flex-start" }}>
           <div style={blackCardStyle}>
             <h2 style={{ fontSize: "24px", fontWeight: "700", margin: 0 }}>{gameState.currentBlackCard || "WAITING..."}</h2>
             <FamilyEditionLabel cardTheme="black" />
           </div>
           <div style={{ flexGrow: 1 }}>
-            {gameState.gameState === "LOBBY" && <div style={{ border: `4px solid ${fgMain}`, padding: "32px", maxWidth: "500px" }}><p>WAITING FOR PLAYERS...</p></div>}
-            {gameState.gameState === "SELECTION_PHASE" && <div style={{ border: `4px solid ${fgMain}`, padding: "32px" }}><h1>{gameState.submissionCount}/{Math.max(1, gameState.players.length - 1)}</h1></div>}
+            {gameState.gameState === "LOBBY" && <div style={{ border: `4px solid ${fgMain}`, padding: "32px", maxWidth: "500px", backgroundColor: bgMain }}><p>WAITING FOR PLAYERS...</p></div>}
+            {gameState.gameState === "SELECTION_PHASE" && <div style={{ border: `4px solid ${fgMain}`, padding: "32px", backgroundColor: bgMain }}><h1>{gameState.submissionCount}/{Math.max(1, gameState.players.length - 1)}</h1></div>}
             {gameState.gameState === "JUDGING_PHASE" && <div style={{ display: "flex", gap: "24px" }}>{gameState.submissions.map((c, i) => <div key={i} style={whiteCardStyle}><p>{c}</p><FamilyEditionLabel cardTheme="white" /></div>)}</div>}
             {winnerAnnouncement && <div style={{ backgroundColor: fgMain, color: bgMain, padding: "32px", border: `4px solid ${fgMain}`, borderRadius: "16px" }}><p>🏆 ROUND WINNER</p><h1>{winnerAnnouncement.winnerName}</h1><p>"{winnerAnnouncement.cardText}"</p></div>}
           </div>
         </div>
 
-        {/* Footer with Design */}
-        <div style={{ position: "relative", borderTop: `4px solid ${fgMain}`, paddingTop: "24px", width: "100%" }}>
-           <BackgroundDesign />
-           <div style={{ position: "relative", zIndex: 1, display: "flex", gap: "16px" }}>
+        {/* Footer */}
+        <div style={{ position: "relative", zIndex: 1, borderTop: `4px solid ${fgMain}`, paddingTop: "24px", width: "100%" }}>
+           <div style={{ display: "flex", gap: "16px" }}>
             {gameState.players.map((p, i) => (
               <div key={i} style={{ padding: "12px 20px", border: `4px solid ${fgMain}`, borderRadius: "12px", backgroundColor: p.isCzar ? fgMain : bgMain, color: p.isCzar ? bgMain : fgMain }}>
                 <p style={{ fontWeight: "900", margin: 0 }}>{p.name}</p>
