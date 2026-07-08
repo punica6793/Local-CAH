@@ -113,6 +113,9 @@ export default function App() {
   const brutalInputStyle = { width: "100%", padding: "16px", backgroundColor: bgMain, border: `4px solid ${fgMain}`, color: fgMain, fontSize: "20px", fontWeight: "900", outline: "none", boxSizing: "border-box" };
   const whiteButtonStyle = { width: "100%", padding: "16px", backgroundColor: fgMain, color: bgMain, border: `4px solid ${fgMain}`, fontWeight: "900", fontSize: "14px", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", boxSizing: "border-box" };
 
+  // Mobile-Specific Responsive Card Scaling Overrides
+  const mobileBlackCardStyle = { ...blackCardStyle, width: "100%", maxWidth: "320px", height: "160px", padding: "16px", boxShadow: "4px 4px 0px 0px rgba(255, 255, 255, 0.15)" };
+
   // 1. LANDING PAGE
   if (!isJoined) {
     return (
@@ -200,7 +203,7 @@ export default function App() {
         </span>
       </div>
       
-      {/* Central Viewport - Clean area (No Black Card displayed) */}
+      {/* Central Viewport Area */}
       <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexGrow: 1 }}>
         
         {/* LOBBY STATE */}
@@ -211,11 +214,13 @@ export default function App() {
           </div>
         )}
 
-        {/* SELECTION PHASE (Prompt message guiding players to look up) */}
+        {/* SELECTION PHASE (Normal Player View - Black Card Reinserted) */}
         {gameState.gameState === "SELECTION_PHASE" && !amICzar && (
-          <div style={{ textAlign: "center", padding: "0 20px" }}>
-            <p style={{ fontSize: "14px", fontWeight: "800", opacity: 0.5, textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>Look up at the TV screen</p>
-            <p style={{ fontSize: "16px", fontWeight: "900", margin: "6px 0 0 0" }}>Select your best response below:</p>
+          <div style={mobileBlackCardStyle}>
+            <p style={{ fontSize: "14px", fontWeight: "700", margin: 0, lineHeight: 1.3 }}>
+              {gameState.currentBlackCard || "Loading question blueprint..."}
+            </p>
+            <FamilyEditionLabel cardTheme="black" />
           </div>
         )}
 
@@ -271,7 +276,6 @@ export default function App() {
               {myHand.map((c, idx) => {
                 const isPreviewed = previewCardIdx === idx;
                 
-                // Stack layout configuration styles
                 const cardStackStyle = {
                   backgroundColor: "#FFFFFF",
                   color: "#000000",
@@ -287,10 +291,8 @@ export default function App() {
                   boxSizing: "border-box",
                   textAlign: "left",
                   cursor: "pointer",
-                  // Cards push tightly against each other until selected
                   marginRight: isPreviewed ? "12px" : "-95px",
                   marginLeft: isPreviewed ? "12px" : "0px",
-                  // Lift up and throw crisp shadow when clicked
                   transform: isPreviewed ? "translateY(-35px) scale(1.05)" : "translateY(0px)",
                   zIndex: isPreviewed ? 99 : idx,
                   transition: "all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)",
@@ -306,7 +308,6 @@ export default function App() {
                       <FamilyEditionLabel cardTheme="white" />
                     </div>
                     
-                    {/* Action button revealed only when card is popped up/previewed */}
                     {isPreviewed && (
                       <button onClick={(e) => { e.stopPropagation(); socket.emit("submitWhiteCard", { roomCode, cardText: c }); }} style={{ width: "100%", padding: "10px 0", marginTop: "12px", backgroundColor: "#000000", color: "#FFFFFF", border: "2px solid #000000", borderRadius: "8px", fontWeight: "900", fontSize: "11px", letterSpacing: "0.05em" }}>
                         TAP TO SUBMIT
